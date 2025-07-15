@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .welcome-message, .stream-selection, .stream-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 3;
+      transition: all 1s ease;
+    }
+
+    .stream-selection, .stream-content {
+      display: none;
+    }
+
+    .stream-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px 40px;
+      justify-content: center;
+    }
+
+    .stream-buttons button, .info-buttons button {
+      background-color: #ffffff33;
+      color: white;
+      border: 2px solid white;
+      border-radius: 12px;
+      padding: 18px 30px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s;
+      min-width: 200px;
+    }
+
+    .stream-buttons button:hover,
+    .info-buttons button:hover {
+      background-color: #ffffff66;
+      transform: scale(1.05);
+    }
+
+    .info-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .stream-output {
+      color: white;
+      margin-top: 30px;
+      max-width: 600px;
+      text-align: left;
+      font-size: 1rem;
+    }
+
+    .ask-ai {
+      margin-top: 20px;
+    }
+
+    .ask-ai input {
+      padding: 10px;
+      width: 80%;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .ask-ai input::placeholder {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🌟 Background & Doodles -->
+  <div class="bg-texture"></div>
+  <div class="floating-doodles">
+    <span>★</span><span>★</span><span>✧</span><span>✦</span><span>☁</span><span>✧</span><span>★</span><span>✧</span>
+    <span>✧</span><span>✧</span><span>★</span><span>✧</span><span>✧</span><span>✦</span><span>✧</span><span>☁</span>
+    <span>★</span><span>★</span><span>✧</span><span>★</span><span>☁</span><span>✦</span><span>★</span><span>✧</span>
+  </div>
+
+  <!-- 🎉 Welcome -->
+  <div class="welcome-message" id="welcomeBox">
+    <h1 style="color: white; font-size: 3rem; font-weight: bold; margin-bottom: 30px;">
+      🎉 Welcome, <span id="username"></span>!
+    </h1>
+    <p style="color:#948989;">You’re logged in successfully to AI Career Buddy.</p>
+  </div>
+
+  <!-- 🎓 Stream Selection -->
+  <div class="stream-selection" id="streamBox">
+    <h1 style="color: rgb(108, 98, 98); font-size: 2.5rem; margin-bottom: 30px;">
+      Which stream are you interested in?
+    </h1>
+    <div class="stream-buttons">
+      <button onclick="selectStream('CSE')">💻 CSE / IT</button>
+      <button onclick="selectStream('ECE')">📡 ECE</button>
+      <button onclick="selectStream('Mechanical')">⚙️ Mechanical</button>
+      <button onclick="selectStream('Civil')">🏗️ Civil</button>
+      <button onclick="selectStream('Electrical')">🔌 Electrical</button>
+      <button onclick="selectStream('Science')">🔬 Science</button>
+      <button onclick="selectStream('Medical')">💊 Medical</button>
+      <button onclick="selectStream('Design')">🎨 Design / Art</button>
+    </div>
+  </div>
+
+  <!-- 📋 Stream Info -->
+  <div class="stream-content" id="infoBox">
+    <h1 style="color: rgb(113, 97, 97); font-size: 2.2rem; margin-bottom: 20px;" id="selectedStreamTitle"></h1>
+    <div class="info-buttons">
+      <button onclick="showInfo('resume')">📄 Resume Tips</button>
+      <button onclick="showInfo('jobs')">💼 Stream Related Jobs</button>
+      <button onclick="showInfo('intern')">🎯 Explore Internships</button>
+      <button onclick="toggleAsk()">🤖 Ask AI</button>
+    </div>
+    <div class="stream-output" id="outputBox"></div>
+    <div class="ask-ai" id="askBox" style="display:none;">
+      <input type="text" placeholder="Type your question... (no response yet)" />
+    </div>
+  </div>
+
+  <!-- 🧠 JavaScript -->
+  <script>
+    const user = JSON.parse(localStorage.getItem("firebase:authUser:ai-career-buddy-9378a:[DEFAULT]")) || {};
+    const email = user.email || "User";
+    const name = email.split("@")[0];
+    document.getElementById("username").innerText = name;
+
+    window.onload = () => {
+      setTimeout(() => {
+        document.getElementById("welcomeBox").style.opacity = "0";
+        document.getElementById("welcomeBox").style.transform = "translate(-50%, -80%)";
+        setTimeout(() => {
+          document.getElementById("welcomeBox").style.display = "none";
+          document.getElementById("streamBox").style.display = "block";
+        }, 1000);
+      }, 3000);
+    };
+
+    const streamData = {
+      CSE: {
+        resume: [
+          "Highlight programming languages (Python, Java, etc.)",
+          "Mention internships or open-source contributions",
+          "Include GitHub or portfolio links"
+        ],
+        jobs: [
+          "Software Developer", "Data Scientist", "AI/ML Engineer", "Full Stack Developer"
+        ],
+        intern: [
+          "Web development intern", "Data analytics intern", "App development intern"
+        ]
+      },
+      ECE: {
+        resume: [
+          "Mention circuit design or IoT projects",
+          "Highlight MATLAB or VLSI tools",
+          "Include research or hardware experience"
+        ],
+        jobs: [
+          "Electronics Engineer", "Embedded Systems Engineer", "IoT Developer", "Network Engineer"
+        ],
+        intern: [
+          "Embedded systems intern", "PCB design intern", "Telecommunications intern"
+        ]
+      },
+      Mechanical: {
+        resume: [
+          "Highlight CAD tools (SolidWorks, AutoCAD)",
+          "Mention mechanical projects or design competitions",
+          "Include manufacturing process knowledge"
+        ],
+        jobs: [
+          "Design Engineer", "Automotive Engineer", "Maintenance Engineer", "Robotics Engineer"
+        ],
+        intern: [
+          "Manufacturing intern", "Product design intern", "Thermal systems intern"
+        ]
+      },
+      Civil: {
+        resume: [
+          "Emphasize AutoCAD or STAAD Pro skills",
+          "Include structural/project design experience",
+          "Mention site or construction work"
+        ],
+        jobs: [
+          "Site Engineer", "Structural Engineer", "Construction Manager", "Urban Planner"
+        ],
+        intern: [
+          "Construction intern", "Surveying intern", "Planning intern"
+        ]
+      },
+      Electrical: {
+        resume: [
+          "Highlight circuit analysis or PLC knowledge",
+          "Mention projects on renewable or smart grid tech",
+          "Include simulation tools like MATLAB"
+        ],
+        jobs: [
+          "Electrical Engineer", "Power Systems Analyst", "Control Systems Engineer", "PLC Programmer"
+        ],
+        intern: [
+          "Power systems intern", "Automation intern", "Maintenance intern"
+        ]
+      },
+      Science: {
+        resume: [
+          "Highlight lab experience or science fairs",
+          "Mention research or academic projects",
+          "Include computer skills & tools like Excel, R, Python"
+        ],
+        jobs: [
+          "Lab Technician", "Data Analyst", "Research Associate", "Environmental Scientist"
+        ],
+        intern: [
+          "Research intern", "Lab assistant intern", "Data entry intern"
+        ]
+      },
+      Medical: {
+        resume: [
+          "Mention hospital training or certifications",
+          "Highlight biological or clinical skills",
+          "Include volunteer experience"
+        ],
+        jobs: [
+          "Doctor", "Medical Lab Technician", "Pharmacist", "Healthcare Analyst"
+        ],
+        intern: [
+          "Clinical intern", "Pharmacy intern", "Hospital management intern"
+        ]
+      },
+      Design: {
+        resume: [
+          "Include Behance or Dribbble portfolios",
+          "Mention creative tools (Photoshop, Figma, etc.)",
+          "Highlight design competitions or freelance work"
+        ],
+        jobs: [
+          "Graphic Designer", "UI/UX Designer", "Animator", "Interior Designer"
+        ],
+        intern: [
+          "Design intern", "UI/UX intern", "Media content intern"
+        ]
+      }
+    };
+
+    let currentStream = "";
+
+    function selectStream(stream) {
+      currentStream = stream;
+      document.getElementById("streamBox").style.display = "none";
+      document.getElementById("infoBox").style.display = "block";
+      document.getElementById("selectedStreamTitle").innerText = `🌟 ${stream} Stream`;
+      document.getElementById("outputBox").innerHTML = "";
+      document.getElementById("askBox").style.display = "none";
+    }
+
+    function showInfo(type) {
+      const data = streamData[currentStream][type];
+      let title = "";
+      if (type === "resume") title = "📄 Resume Tips";
+      else if (type === "jobs") title = "💼 Job Roles";
+      else if (type === "intern") title = "🎯 Internship Suggestions";
+
+      const html = `<h3>${title}</h3><ul>${data.map(item => `<li>• ${item}</li>`).join("")}</ul>`;
+      document.getElementById("outputBox").innerHTML = html;
+      document.getElementById("askBox").style.display = "none";
+    }
+
+    function toggleAsk() {
+      document.getElementById("askBox").style.display = "block";
+      document.getElementById("outputBox").innerHTML = "";
+    }
+  </script>
+
+</body>
+</html>
+
